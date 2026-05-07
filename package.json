@@ -1,0 +1,14 @@
+{
+  "name": "sample-app",
+  "version": "0.1.0",
+  "description": "revenexx sample App — hello-world reference scaffold.",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "node src/main.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "MIT",
+  "private": true
+}
