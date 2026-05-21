@@ -1,0 +1,46 @@
+{
+  "$schema": "https://revenexx.com/schemas/schema.schema.json",
+  "entities": {
+    "greetings": {
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "pk": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "type": "text",
+          "notNull": true,
+          "check": "length(name) > 0"
+        },
+        "message": {
+          "type": "text",
+          "notNull": true,
+          "default": "'Hello'"
+        },
+        "locale": {
+          "type": "text",
+          "notNull": true,
+          "default": "'en'"
+        },
+        "metadata": {
+          "type": "jsonb"
+        },
+        "created_at": {
+          "type": "timestamptz",
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "type": "timestamptz",
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": [
+        { "columns": ["name", "created_at"] },
+        { "columns": ["metadata"], "method": "gin" }
+      ]
+    }
+  }
+}
