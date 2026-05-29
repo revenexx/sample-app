@@ -1,0 +1,205 @@
+{
+  "$schema": "https://revenexx.com/schemas/cockpit.schema.json",
+  "navigation": [
+    {
+      "label": "Greetings",
+      "icon": "chat-round-line",
+      "route": "/greetings",
+      "position": 10
+    }
+  ],
+  "views": [
+    {
+      "route": "/greetings",
+      "type": "list",
+      "title": "Greetings",
+      "entity": "greetings",
+      "columns": [
+        { "name": "name", "label": "Name", "type": "text", "width": "20%" },
+        { "name": "message", "label": "Message", "type": "text" },
+        { "name": "locale", "label": "Locale", "type": "badge", "width": "90px" },
+        { "name": "created_at", "label": "Created", "type": "datetime", "width": "180px" }
+      ],
+      "filters": [
+        { "name": "name", "label": "Name", "type": "text" },
+        {
+          "name": "locale",
+          "label": "Locale",
+          "type": "select",
+          "options": [
+            { "value": "en", "label": "English" },
+            { "value": "de", "label": "Deutsch" },
+            { "value": "fr", "label": "Français" },
+            { "value": "es", "label": "Español" }
+          ]
+        }
+      ],
+      "sort": { "column": "created_at", "direction": "desc" },
+      "page_size": 25,
+      "row_action": "/greetings/:id",
+      "actions": [
+        { "label": "New greeting", "icon": "add-circle", "kind": "navigate", "to": "/greetings/new", "variant": "primary" }
+      ],
+      "permissions": ["greetings.read"]
+    },
+    {
+      "route": "/greetings/new",
+      "type": "form",
+      "title": "New greeting",
+      "entity": "greetings",
+      "mode": "create",
+      "submit_label": "Create greeting",
+      "on_success": "/greetings/:id",
+      "fields": [
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "required": true,
+          "placeholder": "Recipient",
+          "description": "Who is being greeted.",
+          "validation": { "min_length": 1, "max_length": 120 }
+        },
+        {
+          "name": "message",
+          "type": "textarea",
+          "label": "Message",
+          "default": "Hello",
+          "description": "The greeting itself. Plain text — no HTML.",
+          "validation": { "max_length": 2000 }
+        },
+        {
+          "name": "locale",
+          "type": "select",
+          "label": "Locale",
+          "default": "en",
+          "options": [
+            { "value": "en", "label": "English" },
+            { "value": "de", "label": "Deutsch" },
+            { "value": "fr", "label": "Français" },
+            { "value": "es", "label": "Español" }
+          ]
+        },
+        {
+          "name": "metadata",
+          "type": "json",
+          "label": "Metadata",
+          "placeholder": "{}",
+          "description": "Optional structured payload — JSON object."
+        }
+      ],
+      "permissions": ["greetings.write"]
+    },
+    {
+      "route": "/greetings/:id",
+      "type": "detail",
+      "title": "Greeting",
+      "entity": "greetings",
+      "sections": [
+        {
+          "title": "Identity",
+          "fields": [
+            { "name": "id", "label": "ID", "type": "text", "readonly": true },
+            { "name": "name", "label": "Name", "type": "text", "readonly": true },
+            { "name": "locale", "label": "Locale", "type": "text", "readonly": true }
+          ]
+        },
+        {
+          "title": "Content",
+          "fields": [
+            { "name": "message", "label": "Message", "type": "textarea", "readonly": true },
+            { "name": "metadata", "label": "Metadata", "type": "json", "readonly": true }
+          ]
+        },
+        {
+          "title": "Lifecycle",
+          "fields": [
+            { "name": "created_at", "label": "Created", "type": "datetime", "readonly": true },
+            { "name": "updated_at", "label": "Updated", "type": "datetime", "readonly": true }
+          ]
+        }
+      ],
+      "actions": [
+        { "label": "Edit", "icon": "pen", "kind": "navigate", "to": "/greetings/:id/edit", "variant": "secondary" }
+      ],
+      "permissions": ["greetings.read"]
+    },
+    {
+      "route": "/greetings/:id/edit",
+      "type": "form",
+      "title": "Edit greeting",
+      "entity": "greetings",
+      "mode": "edit",
+      "submit_label": "Save changes",
+      "on_success": "/greetings/:id",
+      "fields": [
+        { "name": "name", "type": "text", "label": "Name", "required": true, "validation": { "min_length": 1, "max_length": 120 } },
+        { "name": "message", "type": "textarea", "label": "Message", "validation": { "max_length": 2000 } },
+        {
+          "name": "locale",
+          "type": "select",
+          "label": "Locale",
+          "options": [
+            { "value": "en", "label": "English" },
+            { "value": "de", "label": "Deutsch" },
+            { "value": "fr", "label": "Français" },
+            { "value": "es", "label": "Español" }
+          ]
+        },
+        { "name": "metadata", "type": "json", "label": "Metadata" }
+      ],
+      "permissions": ["greetings.write"]
+    }
+  ],
+  "widgets": [
+    {
+      "id": "greetings-total",
+      "component": "EntityCount",
+      "title": "Total greetings",
+      "size": "small",
+      "position": 10,
+      "refresh_interval": 60,
+      "entity": "greetings",
+      "link_to": "/greetings"
+    },
+    {
+      "id": "greetings-en",
+      "component": "EntityCount",
+      "title": "English greetings",
+      "size": "small",
+      "position": 20,
+      "refresh_interval": 60,
+      "entity": "greetings",
+      "filters": { "locale": "en" },
+      "link_to": "/greetings"
+    },
+    {
+      "id": "greetings-de",
+      "component": "EntityCount",
+      "title": "German greetings",
+      "size": "small",
+      "position": 30,
+      "refresh_interval": 60,
+      "entity": "greetings",
+      "filters": { "locale": "de" },
+      "link_to": "/greetings"
+    },
+    {
+      "id": "greetings-recent",
+      "component": "EntityList",
+      "title": "Most recent greetings",
+      "size": "large",
+      "position": 40,
+      "refresh_interval": 30,
+      "entity": "greetings",
+      "columns": [
+        { "name": "name", "label": "Name", "type": "text" },
+        { "name": "message", "label": "Message", "type": "text" },
+        { "name": "locale", "label": "Locale", "type": "text" },
+        { "name": "created_at", "label": "Created", "type": "datetime" }
+      ],
+      "limit": 8,
+      "link_to": "/greetings"
+    }
+  ]
+}

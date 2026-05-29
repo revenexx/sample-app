@@ -1,0 +1,26 @@
+{
+  "$schema": "https://revenexx.com/schemas/search.schema.json",
+  "version": "1",
+  "collections": [
+    {
+      "name": "greetings",
+      "schema": {
+        "fields": [
+          { "name": "id", "type": "string" },
+          { "name": "name", "type": "string", "facet": false },
+          { "name": "message", "type": "string", "facet": false },
+          { "name": "locale", "type": "string", "facet": true },
+          { "name": "metadata", "type": "object", "optional": true },
+          { "name": "created_at", "type": "string", "facet": false },
+          { "name": "updated_at", "type": "string", "facet": false }
+        ],
+        "enable_nested_fields": true
+      },
+      "sync": {
+        "source_table": "greetings",
+        "actions": ["insert", "update", "delete"],
+        "transform": "record_only"
+      }
+    }
+  ]
+}
