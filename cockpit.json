@@ -40,6 +40,10 @@
       "actions": [
         { "label": "New greeting", "icon": "add-circle", "kind": "navigate", "to": "/greetings/new", "variant": "primary" }
       ],
+      "row_actions": [
+        { "label": "View", "icon": "eye", "kind": "navigate", "to": "/greetings/:id", "variant": "ghost" },
+        { "label": "Edit", "icon": "pen", "kind": "navigate", "to": "/greetings/:id/edit", "variant": "ghost" }
+      ],
       "permissions": ["greetings.read"]
     },
     {
