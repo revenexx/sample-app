@@ -21,7 +21,7 @@
         { "name": "created_at", "label": "Created", "type": "datetime", "width": "180px" }
       ],
       "filters": [
-        { "name": "name", "label": "Name", "type": "text" },
+        { "name": "q", "label": "Search", "type": "text", "columns": ["name", "message"] },
         {
           "name": "locale",
           "label": "Locale",
