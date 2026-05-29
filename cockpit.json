@@ -155,6 +155,16 @@
       "permissions": ["greetings.write"]
     }
   ],
+  "action_buttons": [
+    {
+      "label": "Inspect on GitHub Zen",
+      "icon": "link",
+      "target_entity": "greetings",
+      "kind": "link",
+      "url": "https://api.github.com/zen",
+      "variant": "ghost"
+    }
+  ],
   "widgets": [
     {
       "id": "greetings-total",
