@@ -10,11 +10,9 @@
           { "name": "name", "type": "string", "facet": false },
           { "name": "message", "type": "string", "facet": false },
           { "name": "locale", "type": "string", "facet": true },
-          { "name": "metadata", "type": "object", "optional": true },
           { "name": "created_at", "type": "string", "facet": false },
           { "name": "updated_at", "type": "string", "facet": false }
-        ],
-        "enable_nested_fields": true
+        ]
       },
       "sync": {
         "source_table": "greetings",
