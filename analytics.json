@@ -1,0 +1,20 @@
+{
+  "$schema": "https://schemas.revenexx.com/analytics.schema.json",
+  "version": "1",
+  "views": [
+    {
+      "name": "greetings",
+      "source": "greetings",
+      "key": "id",
+      "columns": [
+        { "name": "greeting_id", "from": "column:id",         "type": "uuid",        "optional": false },
+        { "name": "name",        "from": "column:name",       "type": "text",        "optional": false },
+        { "name": "message",     "from": "column:message",    "type": "text",        "optional": false },
+        { "name": "locale",      "from": "column:locale",     "type": "text",        "optional": false },
+        { "name": "metadata",    "from": "column:metadata",   "type": "jsonb" },
+        { "name": "created_at",  "from": "column:created_at", "type": "timestamptz", "optional": false },
+        { "name": "updated_at",  "from": "column:updated_at", "type": "timestamptz", "optional": false }
+      ]
+    }
+  ]
+}
