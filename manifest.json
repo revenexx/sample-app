@@ -2,17 +2,40 @@
   "$schema": "https://revenexx.com/schemas/manifest.schema.json",
   "name": "sample-app",
   "vendor": "revenexx",
-  "version": "0.2.7",
+  "version": "0.3.0",
   "title": "Sample App",
   "description": "Reference scaffold for a revenexx App. A minimal hello-world function used to smoke-test the App Registry runtime end-to-end.",
   "permissions": [
     {
       "entity": "greetings",
-      "access": ["read", "create"]
+      "access": ["read", "create", "update", "delete"]
     }
   ],
   "events": {
-    "emits": ["sample.greeted"],
+    "emits": [
+      "sample.greeted",
+      {
+        "name": "greetings.created",
+        "entity": "greetings",
+        "on": ["insert"],
+        "payload": {
+          "id": "column:id",
+          "name": "column:name",
+          "message": "column:message",
+          "locale": "column:locale"
+        }
+      },
+      {
+        "name": "greetings.updated",
+        "entity": "greetings",
+        "on": ["update"]
+      },
+      {
+        "name": "greetings.deleted",
+        "entity": "greetings",
+        "on": ["delete"]
+      }
+    ],
     "listens": ["app.installed", "app.uninstalled"]
   },
   "policies": [
@@ -26,7 +49,12 @@
     {
       "name": "event-publish",
       "attrs": {
-        "events": ["sample.greeted"]
+        "events": [
+          "sample.greeted",
+          "greetings.created",
+          "greetings.updated",
+          "greetings.deleted"
+        ]
       }
     }
   ]
