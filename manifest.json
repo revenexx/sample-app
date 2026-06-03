@@ -35,8 +35,7 @@
           "app": { "type": "object" },
           "timestamp": { "type": "string", "format": "date-time" }
         }
-      },
-      "binding": { "function": "main" }
+      }
     }
   ],
   "events": {
