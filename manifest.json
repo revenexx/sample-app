@@ -2,13 +2,41 @@
   "$schema": "https://revenexx.com/schemas/manifest.schema.json",
   "name": "sample-app",
   "vendor": "revenexx",
-  "version": "0.3.4",
+  "version": "0.4.0",
   "title": "Sample App",
   "description": "Reference scaffold for a revenexx App. A minimal hello-world function used to smoke-test the App Registry runtime end-to-end.",
   "permissions": [
     {
       "entity": "greetings",
       "access": ["read", "create", "update", "delete"]
+    }
+  ],
+  "capabilities": [
+    {
+      "type": "define",
+      "capability": "greetings.create",
+      "version": "1.0.0",
+      "summary": "Create a greeting and return the rendered message",
+      "route": { "method": "POST", "path": "/greetings" },
+      "request": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "description": "Who to greet" },
+          "locale": { "type": "string", "default": "en", "description": "BCP-47 locale" }
+        }
+      },
+      "response": {
+        "type": "object",
+        "required": ["message"],
+        "properties": {
+          "message": { "type": "string" },
+          "app": { "type": "object" },
+          "timestamp": { "type": "string", "format": "date-time" }
+        }
+      },
+      "binding": { "function": "main" }
     }
   ],
   "events": {
