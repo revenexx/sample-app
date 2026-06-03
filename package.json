@@ -4,7 +4,8 @@
   "description": "revenexx sample App — hello-world reference scaffold.",
   "main": "src/main.js",
   "scripts": {
-    "start": "node src/main.js"
+    "start": "node src/main.js",
+    "test": "node --test"
   },
   "engines": {
     "node": ">=22"
