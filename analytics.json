@@ -6,6 +6,14 @@
       "name": "greetings",
       "source": "greetings",
       "key": "id",
+      "title": "Greetings",
+      "description": "Greeting messages logged by the sample app, by locale.",
+      "roles": {
+        "time": "created_at",
+        "entity": "greeting_id",
+        "measures": [],
+        "dimensions": ["locale", "name"]
+      },
       "columns": [
         { "name": "greeting_id", "from": "column:id",         "type": "uuid",        "optional": false },
         { "name": "name",        "from": "column:name",       "type": "text",        "optional": false },
