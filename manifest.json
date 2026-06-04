@@ -2,7 +2,7 @@
   "$schema": "https://revenexx.com/schemas/manifest.schema.json",
   "name": "sample-app",
   "vendor": "revenexx",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "title": "Sample App",
   "type": "public",
   "description": "Reference scaffold for a revenexx App. A minimal hello-world function used to smoke-test the App Registry runtime end-to-end.",
@@ -10,6 +10,10 @@
     {
       "entity": "greetings",
       "access": ["read", "create", "update", "delete"]
+    },
+    {
+      "outbound": "api.github.com",
+      "paths": ["/zen"]
     }
   ],
   "capabilities": [
@@ -65,25 +69,5 @@
       }
     ],
     "listens": ["app.installed", "app.uninstalled"]
-  },
-  "policies": [
-    {
-      "name": "outbound-access",
-      "attrs": {
-        "host": "api.github.com",
-        "path": "/zen"
-      }
-    },
-    {
-      "name": "event-publish",
-      "attrs": {
-        "events": [
-          "sample.greeted",
-          "greetings.created",
-          "greetings.updated",
-          "greetings.deleted"
-        ]
-      }
-    }
-  ]
+  }
 }
