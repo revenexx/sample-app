@@ -64,7 +64,12 @@ function resolveContext(fnContext, env = process.env) {
         ? claims.roles
         : (typeof claims.roles === 'string' ? claims.roles.split(/[ ,]+/).filter(Boolean) : []);
 
-    const trigger = header(headers, 'x-revenexx-trigger') || 'http';
+    // A scheduled tick carries X-Revenexx-Schedule (the manifest schedule name,
+    // ADR-0058) so a multi-schedule App can branch on which job fired. Its
+    // presence also implies the trigger is a schedule when the runtime didn't
+    // set x-revenexx-trigger.
+    const schedule = header(headers, 'x-revenexx-schedule') || null;
+    const trigger = header(headers, 'x-revenexx-trigger') || (schedule ? 'schedule' : 'http');
 
     return {
         /** Resolved tenant slug, or null for an anonymous / tenant-neutral call. */
@@ -79,6 +84,8 @@ function resolveContext(fnContext, env = process.env) {
         },
         /** What triggered this invocation: http | schedule | admin | event. */
         trigger,
+        /** Manifest schedule name when this is a scheduled tick, else null. */
+        schedule,
         /** Gateway capability/operationId, when routed through the gateway. */
         capability: header(headers, 'x-capability-key') || null,
 

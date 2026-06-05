@@ -2,7 +2,7 @@
   "$schema": "https://revenexx.com/schemas/manifest.schema.json",
   "name": "sample-app",
   "vendor": "revenexx",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "title": "Sample App",
   "type": "public",
   "description": "Reference scaffold for a revenexx App. A minimal hello-world function used to smoke-test the App Registry runtime end-to-end.",
@@ -69,5 +69,11 @@
       }
     ],
     "listens": ["app.installed", "app.uninstalled"]
-  }
+  },
+  "schedules": [
+    {
+      "name": "heartbeat",
+      "cron": "*/5 * * * *"
+    }
+  ]
 }

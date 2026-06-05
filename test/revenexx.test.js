@@ -38,6 +38,13 @@ test('trigger is read from the header (schedule/admin/event)', () => {
     assert.equal(ctx({ 'x-revenexx-trigger': 'schedule' }).trigger, 'schedule');
 });
 
+test('schedule name is read from x-revenexx-schedule and implies a schedule trigger', () => {
+    const c = ctx({ 'x-revenexx-schedule': 'heartbeat' });
+    assert.equal(c.schedule, 'heartbeat');
+    assert.equal(c.trigger, 'schedule');
+    assert.equal(ctx({}).schedule, null);
+});
+
 test('isAdmin reflects role claim or admin trigger', () => {
     assert.equal(ctx({ 'x-revenexx-jwt': jwtWith({ roles: ['tenant-admin'] }) }).isAdmin(), true);
     assert.equal(ctx({ 'x-revenexx-trigger': 'admin' }).isAdmin(), true);

@@ -13,7 +13,19 @@ module.exports = async (context) => {
     const { req, res, log } = context;
     const ctx = resolveContext(context);
 
-    log(`sample-app hit by ${req.method} ${req.path} — tenant=${ctx.tenant ?? 'none'} trigger=${ctx.trigger}`);
+    log(`sample-app hit by ${req.method} ${req.path} — tenant=${ctx.tenant ?? 'none'} trigger=${ctx.trigger}${ctx.schedule ? ` schedule=${ctx.schedule}` : ''}`);
+
+    // Scheduled tick (ADR-0058): the platform scheduler fans out one run per
+    // active tenant install, each carrying that tenant's brokered identity +
+    // the schedule name. Branch on it so a multi-schedule App can do per-job work.
+    if (ctx.schedule) {
+        log(`scheduled run '${ctx.schedule}' for tenant=${ctx.tenant ?? 'none'}`);
+        return res.json({
+            scheduled: ctx.schedule,
+            tenant: ctx.tenant,
+            timestamp: new Date().toISOString(),
+        });
+    }
 
     const name = req.query?.name ?? req.body?.name ?? 'world';
 
@@ -28,6 +40,7 @@ module.exports = async (context) => {
         caller: {
             tenant: ctx.tenant,
             trigger: ctx.trigger,
+            schedule: ctx.schedule,
             subject: ctx.actor.subject,
             isAdmin: ctx.isAdmin(),
         },
