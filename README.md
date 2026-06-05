@@ -14,6 +14,23 @@ register → deploy → execute).
 | `src/main.js`    | The function entrypoint. Appwrite-style `module.exports = async (context) => …`.      |
 | `package.json`   | Node package manifest. Pinned to Node 22+.                                            |
 
+## API
+
+A small REST surface over the `greetings` entity, backed by `@revenexx/app-sdk`
+(every read/write is RLS-scoped to the caller's tenant via the brokered JWT):
+
+| Method · Path            | Capability          | Notes |
+| ------------------------ | ------------------- | ----- |
+| `POST /greetings`        | `greetings.create`  | Body `{ name, message?, locale?, metadata? }` → persisted row |
+| `GET /greetings`         | `greetings.list`    | Filter: `?locale=`, `?name=`, `?q=` (name substring). Page: `?limit=` (≤100), `?offset=`, `?order=` (e.g. `created_at.desc`) |
+| `GET /greetings/{id}`    | `greetings.get`     | One row, or 404 |
+| `PUT /greetings/{id}`    | `greetings.update`  | Body fields to patch |
+| `DELETE /greetings/{id}` | `greetings.delete`  | `{ deleted, id }` |
+| `GET /digest`            | `greetings.digest`  | Transform — totals per locale + the 5 latest as an upper-cased "shout" |
+
+Through the gateway these are `https://api.revenexx.com/v1/...` (the API key must
+hold a scope covering the capability, e.g. `greetings.*`).
+
 ## Deploy
 
 ```sh

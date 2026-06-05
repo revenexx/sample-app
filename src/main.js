@@ -1,77 +1,162 @@
 /**
  * Sample App function entrypoint.
  *
- * Reference scaffold for a revenexx App. Renders a greeting and echoes the
- * resolved per-invocation tenant context (PE-175 / ADR-0057) so the end-to-end
- * tenant flow can be smoke-tested: tenant A in → tenant A, tenant B in →
- * tenant B. Real domain logic scopes data via `ctx.data(...)`.
+ * A small REST router over the `greetings` entity, backed by @revenexx/app-sdk
+ * (ADR-0057): the SDK's runtime adapter forwards the brokered per-tenant JWT to
+ * PostgREST, so every row read/written is RLS-scoped to the caller's tenant.
+ *
+ *   POST   /greetings           create
+ *   GET    /greetings           list (filter: locale, name, q; page: limit, offset, order)
+ *   GET    /greetings/{id}      read one
+ *   PUT    /greetings/{id}      update
+ *   DELETE /greetings/{id}      delete
+ *   GET    /digest              transform — aggregate + a derived "shout" view
  */
 
 const { resolveContext } = require('./revenexx');
-// Typed data client generated from this App's schema.json + manifest.json,
-// running on the published @revenexx/app-sdk runtime (`appsdk generate`).
 const { createDb, ENTITIES } = require('./db.generated');
+
+/** Path params the gateway extracted from the route template (e.g. {id}). */
+function pathParams(req) {
+    try {
+        return JSON.parse((req.headers || {})['x-capability-params'] || '{}');
+    } catch {
+        return {};
+    }
+}
+
+/** The id for /greetings/{id} — prefer the gateway's param, fall back to the path. */
+function resourceId(req) {
+    const p = pathParams(req);
+    if (p.id) return p.id;
+    const parts = String(req.path || '').split('/').filter(Boolean);
+    return parts[1] ?? null;
+}
+
+/** A tenant-scoped data client, or null when there's no identity / data plane. */
+function dataClient(context, ctx) {
+    if (!ctx.jwt || !process.env.REVENEXX_DATA_ENDPOINT) return null;
+    return createDb({ adapter: 'runtime', context });
+}
+
+const INT = (v, d) => {
+    const n = parseInt(v, 10);
+    return Number.isFinite(n) ? n : d;
+};
 
 module.exports = async (context) => {
     const { req, res, log } = context;
     const ctx = resolveContext(context);
+    const method = req.method;
+    const path = (String(req.path || '/').replace(/\/+$/, '')) || '/';
 
-    log(`sample-app hit by ${req.method} ${req.path} — tenant=${ctx.tenant ?? 'none'} trigger=${ctx.trigger}${ctx.schedule ? ` schedule=${ctx.schedule}` : ''}`);
+    log(`sample-app ${method} ${path} — tenant=${ctx.tenant ?? 'none'} trigger=${ctx.trigger}${ctx.schedule ? ` schedule=${ctx.schedule}` : ''}`);
 
-    // Scheduled tick (ADR-0058): the platform scheduler fans out one run per
-    // active tenant install, each carrying that tenant's brokered identity +
-    // the schedule name. Branch on it so a multi-schedule App can do per-job work.
+    // Scheduled tick (ADR-0058): one run per active tenant install.
     if (ctx.schedule) {
-        log(`scheduled run '${ctx.schedule}' for tenant=${ctx.tenant ?? 'none'}`);
-        return res.json({
-            scheduled: ctx.schedule,
-            tenant: ctx.tenant,
-            timestamp: new Date().toISOString(),
-        });
+        return res.json({ scheduled: ctx.schedule, tenant: ctx.tenant, timestamp: new Date().toISOString() });
     }
 
-    const name = req.query?.name ?? req.body?.name ?? 'world';
-
-    // End-to-end data path (ADR-0057): when this invocation carries a brokered
-    // tenant identity and the data plane is configured, persist the greeting via
-    // the SDK's runtime adapter — it forwards ctx.jwt as the PostgREST Bearer so
-    // RLS scopes the write to this tenant. Falls back to a plain echo otherwise
-    // (e.g. an anonymous local hit), so the smoke test still works everywhere.
-    let greeting = null;
-    let dataError = null;
-    if (ctx.jwt && process.env.REVENEXX_DATA_ENDPOINT) {
-        try {
-            const db = createDb({ adapter: 'runtime', context });
-            greeting = await db.greetings.create({ name, message: `Hello, ${name}!` });
-        } catch (err) {
-            dataError = err?.message ?? String(err);
-            log(`sdk data write failed: ${dataError}`);
+    const db = dataClient(context, ctx);
+    const needsData = () => {
+        if (!db) {
+            res.json({ error: 'data plane unavailable — this route needs a tenant identity and REVENEXX_DATA_ENDPOINT' }, 503);
+            return false;
         }
-    }
+        return true;
+    };
 
-    return res.json({
-        message: `Hello, ${name}!`,
-        app: {
-            id: process.env.REVENEXX_APP_ID ?? null,
-            name: process.env.REVENEXX_APP_NAME ?? null,
-            deployment: process.env.REVENEXX_APP_DEPLOYMENT ?? null,
-            runtime: `${process.env.REVENEXX_APP_RUNTIME_NAME ?? ''}-${process.env.REVENEXX_APP_RUNTIME_VERSION ?? ''}`,
-        },
-        caller: {
-            tenant: ctx.tenant,
-            trigger: ctx.trigger,
-            schedule: ctx.schedule,
-            subject: ctx.actor.subject,
-            isAdmin: ctx.isAdmin(),
-        },
-        // Proves the published @revenexx/app-sdk loaded in the deployed runtime;
-        // `greeting` is the row persisted through PostgREST when the data path ran.
-        sdk: {
-            runtime: '@revenexx/app-sdk',
-            entities: Object.keys(ENTITIES),
-            greeting,
-            dataError,
-        },
-        timestamp: new Date().toISOString(),
-    });
+    try {
+        // --- POST /greetings — create -------------------------------------
+        if (method === 'POST' && path === '/greetings') {
+            const body = req.body || {};
+            const name = body.name ?? 'world';
+            const message = body.message ?? `Hello, ${name}!`;
+            if (!db) {
+                // No data plane (e.g. anonymous local hit): echo, don't persist.
+                return res.json({ message, greeting: null, persisted: false }, 200);
+            }
+            const greeting = await db.greetings.create({
+                name,
+                message,
+                ...(body.locale ? { locale: body.locale } : {}),
+                ...(body.metadata ? { metadata: body.metadata } : {}),
+            });
+            return res.json({ message, greeting, persisted: true }, 201);
+        }
+
+        // --- GET /greetings — list (filter + paginate) --------------------
+        if (method === 'GET' && path === '/greetings') {
+            if (!needsData()) return;
+            const q = req.query || {};
+            const where = {};
+            if (q.locale) where.locale = q.locale;
+            if (q.name) where.name = q.name;
+            if (q.q) where.name = { op: 'ilike', value: `%${q.q}%` }; // substring search
+
+            const limit = Math.min(Math.max(INT(q.limit, 20), 1), 100);
+            const offset = Math.max(INT(q.offset, 0), 0);
+            const order = q.order || 'created_at.desc';
+
+            const items = await db.greetings.list({ where, order, limit, offset });
+            return res.json({
+                items,
+                page: { limit, offset, returned: items.length, hasMore: items.length === limit },
+                filter: where,
+            }, 200);
+        }
+
+        // --- GET /greetings/{id} — read one -------------------------------
+        if (method === 'GET' && path.startsWith('/greetings/')) {
+            if (!needsData()) return;
+            const row = await db.greetings.get(resourceId(req));
+            return row ? res.json(row, 200) : res.json({ error: 'not found' }, 404);
+        }
+
+        // --- PUT /greetings/{id} — update ---------------------------------
+        if (method === 'PUT' && path.startsWith('/greetings/')) {
+            if (!needsData()) return;
+            const id = resourceId(req);
+            const existing = await db.greetings.get(id);
+            if (!existing) return res.json({ error: 'not found' }, 404);
+            const body = req.body || {};
+            const patch = {};
+            for (const k of ['name', 'message', 'locale', 'metadata']) {
+                if (body[k] !== undefined) patch[k] = body[k];
+            }
+            const updated = await db.greetings.update(id, patch);
+            return res.json(updated, 200);
+        }
+
+        // --- DELETE /greetings/{id} — delete ------------------------------
+        if (method === 'DELETE' && path.startsWith('/greetings/')) {
+            if (!needsData()) return;
+            const id = resourceId(req);
+            const existing = await db.greetings.get(id);
+            if (!existing) return res.json({ error: 'not found' }, 404);
+            await db.greetings.delete(id);
+            return res.json({ deleted: true, id }, 200);
+        }
+
+        // --- GET /digest — transform --------------------------------------
+        // Reads the set and returns a derived view: totals per locale plus the
+        // five most recent greetings rendered as an upper-cased "shout".
+        if (method === 'GET' && path === '/digest') {
+            if (!needsData()) return;
+            const all = await db.greetings.list({ order: 'created_at.desc', limit: 1000 });
+            const byLocale = {};
+            for (const g of all) byLocale[g.locale] = (byLocale[g.locale] || 0) + 1;
+            const shout = all.slice(0, 5).map((g) => ({
+                id: g.id,
+                shout: String(g.message ?? '').toUpperCase(),
+                at: g.created_at,
+            }));
+            return res.json({ total: all.length, byLocale, shout, generatedAt: new Date().toISOString() }, 200);
+        }
+
+        return res.json({ error: 'route not found', method, path, entities: Object.keys(ENTITIES) }, 404);
+    } catch (err) {
+        log(`error on ${method} ${path}: ${err?.message ?? err}`);
+        return res.json({ error: err?.message ?? String(err) }, 500);
+    }
 };

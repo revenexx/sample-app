@@ -2,7 +2,7 @@
   "$schema": "https://revenexx.com/schemas/manifest.schema.json",
   "name": "sample-app",
   "vendor": "revenexx",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "title": "Sample App",
   "type": "public",
   "description": "Reference scaffold for a revenexx App. A minimal hello-world function used to smoke-test the App Registry runtime end-to-end.",
@@ -39,6 +39,75 @@
           "message": { "type": "string" },
           "app": { "type": "object" },
           "timestamp": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    {
+      "type": "define",
+      "capability": "greetings.list",
+      "version": "1.0.0",
+      "summary": "List greetings with filtering (locale, name, q) and pagination (limit, offset, order)",
+      "route": { "method": "GET", "path": "/greetings" },
+      "response": {
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "type": "object" } },
+          "page": { "type": "object" }
+        }
+      }
+    },
+    {
+      "type": "define",
+      "capability": "greetings.get",
+      "version": "1.0.0",
+      "summary": "Read a single greeting by id",
+      "route": { "method": "GET", "path": "/greetings/{id}" },
+      "response": { "type": "object" }
+    },
+    {
+      "type": "define",
+      "capability": "greetings.update",
+      "version": "1.0.0",
+      "summary": "Update a greeting by id",
+      "route": { "method": "PUT", "path": "/greetings/{id}" },
+      "request": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "message": { "type": "string" },
+          "locale": { "type": "string" },
+          "metadata": { "type": "object" }
+        }
+      },
+      "response": { "type": "object" }
+    },
+    {
+      "type": "define",
+      "capability": "greetings.delete",
+      "version": "1.0.0",
+      "summary": "Delete a greeting by id",
+      "route": { "method": "DELETE", "path": "/greetings/{id}" },
+      "response": {
+        "type": "object",
+        "properties": {
+          "deleted": { "type": "boolean" },
+          "id": { "type": "string" }
+        }
+      }
+    },
+    {
+      "type": "define",
+      "capability": "greetings.digest",
+      "version": "1.0.0",
+      "summary": "Aggregate greetings and return a derived upper-cased shout view",
+      "route": { "method": "GET", "path": "/digest" },
+      "response": {
+        "type": "object",
+        "properties": {
+          "total": { "type": "integer" },
+          "byLocale": { "type": "object" },
+          "shout": { "type": "array", "items": { "type": "object" } }
         }
       }
     }
