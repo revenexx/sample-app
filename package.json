@@ -11,5 +11,8 @@
     "node": ">=22"
   },
   "license": "MIT",
-  "private": true
+  "private": true,
+  "dependencies": {
+    "@revenexx/app-sdk": "^0.1.0"
+  }
 }

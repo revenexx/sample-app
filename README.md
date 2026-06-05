@@ -28,14 +28,21 @@ curl -X POST https://app.revenexx.com/v1/apps \
   -d '{"functionId":"unique()","name":"sample-app","runtime":"node-22"}'
 
 # Then push the deployment (replace :appId with the returned $id, set entrypoint
-# to src/main.js, commands to npm install if you add deps).
+# to src/main.js; commands runs npm install because this App depends on the SDK).
 curl -X POST https://app.revenexx.com/v1/apps/:appId/deployments \
   -H "X-Revenexx-Project: revenexx" \
   -H "X-Revenexx-Key: $REVENEXX_KEY" \
   -F "code=@sample-app.tar.gz" \
   -F "entrypoint=src/main.js" \
+  -F "commands=npm install" \
   -F "activate=true"
 ```
+
+> **Private dependency.** This App depends on `@revenexx/app-sdk`, published
+> private to **GitHub Packages**. `.npmrc` routes the `@revenexx` scope there;
+> GitHub Packages requires a token even for public packages, so the build worker
+> must expose `NODE_AUTH_TOKEN` (a token with `read:packages`) for `npm install`
+> to resolve it.
 
 ## Local sanity
 

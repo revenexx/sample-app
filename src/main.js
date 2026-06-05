@@ -8,6 +8,9 @@
  */
 
 const { resolveContext } = require('./revenexx');
+// Typed data client generated from this App's schema.json + manifest.json,
+// running on the published @revenexx/app-sdk runtime (`appsdk generate`).
+const { createDb, ENTITIES } = require('./db.generated');
 
 module.exports = async (context) => {
     const { req, res, log } = context;
@@ -29,6 +32,23 @@ module.exports = async (context) => {
 
     const name = req.query?.name ?? req.body?.name ?? 'world';
 
+    // End-to-end data path (ADR-0057): when this invocation carries a brokered
+    // tenant identity and the data plane is configured, persist the greeting via
+    // the SDK's runtime adapter — it forwards ctx.jwt as the PostgREST Bearer so
+    // RLS scopes the write to this tenant. Falls back to a plain echo otherwise
+    // (e.g. an anonymous local hit), so the smoke test still works everywhere.
+    let greeting = null;
+    let dataError = null;
+    if (ctx.jwt && process.env.REVENEXX_DATA_ENDPOINT) {
+        try {
+            const db = createDb({ adapter: 'runtime', context });
+            greeting = await db.greetings.create({ name, message: `Hello, ${name}!` });
+        } catch (err) {
+            dataError = err?.message ?? String(err);
+            log(`sdk data write failed: ${dataError}`);
+        }
+    }
+
     return res.json({
         message: `Hello, ${name}!`,
         app: {
@@ -43,6 +63,14 @@ module.exports = async (context) => {
             schedule: ctx.schedule,
             subject: ctx.actor.subject,
             isAdmin: ctx.isAdmin(),
+        },
+        // Proves the published @revenexx/app-sdk loaded in the deployed runtime;
+        // `greeting` is the row persisted through PostgREST when the data path ran.
+        sdk: {
+            runtime: '@revenexx/app-sdk',
+            entities: Object.keys(ENTITIES),
+            greeting,
+            dataError,
         },
         timestamp: new Date().toISOString(),
     });
