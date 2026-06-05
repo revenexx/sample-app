@@ -6,8 +6,10 @@
  * stays tenant-agnostic: the tenant is an input, not a deploy artifact.
  *
  * Headers consumed (forwarded by the gateway → platform):
- *   x-revenexx-jwt      brokered Eimerkette identity (Bearer for PostgREST; RLS
- *                       keys off its verified tenant_id claim)
+ *   x-revenexx-context  brokered Eimerkette identity JWT (Bearer for PostgREST;
+ *                       RLS keys off its verified tenant_id claim). Carried in
+ *                       its own header — NOT x-revenexx-jwt, which the platform
+ *                       auth layer would consume as an Appwrite JWT.
  *   x-revenexx-tenant   tenant slug (multi-tenant disambiguator)
  *   x-revenexx-trigger  http | schedule | admin | event
  *   x-capability-key    gateway capability/operationId (optional)
@@ -51,7 +53,7 @@ function decodeClaims(jwt) {
  */
 function resolveContext(fnContext, env = process.env) {
     const headers = (fnContext && fnContext.req && fnContext.req.headers) || {};
-    const jwt = header(headers, 'x-revenexx-jwt');
+    const jwt = header(headers, 'x-revenexx-context');
     const claims = decodeClaims(jwt);
 
     // The verified source of truth is the JWT claim; the header only

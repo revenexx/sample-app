@@ -16,7 +16,7 @@ function ctx(headers, env = {}) {
 
 test('resolves tenant from the verified JWT claim, not the header', () => {
     const c = ctx({
-        'x-revenexx-jwt': jwtWith({ sub: 'user-1', tenant_id: 'acme', roles: ['user'] }),
+        'x-revenexx-context': jwtWith({ sub: 'user-1', tenant_id: 'acme', roles: ['user'] }),
         'x-revenexx-tenant': 'evil-corp', // header lies; claim wins
     });
     assert.equal(c.tenant, 'acme');
@@ -46,9 +46,9 @@ test('schedule name is read from x-revenexx-schedule and implies a schedule trig
 });
 
 test('isAdmin reflects role claim or admin trigger', () => {
-    assert.equal(ctx({ 'x-revenexx-jwt': jwtWith({ roles: ['tenant-admin'] }) }).isAdmin(), true);
+    assert.equal(ctx({ 'x-revenexx-context': jwtWith({ roles: ['tenant-admin'] }) }).isAdmin(), true);
     assert.equal(ctx({ 'x-revenexx-trigger': 'admin' }).isAdmin(), true);
-    assert.equal(ctx({ 'x-revenexx-jwt': jwtWith({ roles: ['user'] }) }).isAdmin(), false);
+    assert.equal(ctx({ 'x-revenexx-context': jwtWith({ roles: ['user'] }) }).isAdmin(), false);
 });
 
 test('data() refuses without a tenant identity', () => {
@@ -56,7 +56,7 @@ test('data() refuses without a tenant identity', () => {
 });
 
 test('data() requires REVENEXX_DATA_ENDPOINT', () => {
-    const c = ctx({ 'x-revenexx-jwt': jwtWith({ tenant_id: 'acme' }) }, {});
+    const c = ctx({ 'x-revenexx-context': jwtWith({ tenant_id: 'acme' }) }, {});
     assert.throws(() => c.data('/x'), /REVENEXX_DATA_ENDPOINT/);
 });
 
