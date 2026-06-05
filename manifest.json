@@ -2,7 +2,7 @@
   "$schema": "https://revenexx.com/schemas/manifest.schema.json",
   "name": "sample-app",
   "vendor": "revenexx",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "title": "Sample App",
   "type": "public",
   "description": "Reference scaffold for a revenexx App. A minimal hello-world function used to smoke-test the App Registry runtime end-to-end.",
@@ -51,7 +51,23 @@
       "response": {
         "type": "object",
         "properties": {
-          "items": { "type": "array", "items": { "type": "object" } },
+          "items": {
+            "type": "array",
+            "items": {
+              "title": "Greeting",
+              "type": "object",
+              "properties": {
+                "id": { "type": "string", "format": "uuid" },
+                "name": { "type": "string" },
+                "message": { "type": "string" },
+                "locale": { "type": "string" },
+                "metadata": { "type": ["object", "null"] },
+                "created_at": { "type": "string", "format": "date-time" },
+                "updated_at": { "type": "string", "format": "date-time" },
+                "tenant_id": { "type": "string" }
+              }
+            }
+          },
           "page": { "type": "object" }
         }
       }
@@ -62,7 +78,20 @@
       "version": "1.0.0",
       "summary": "Read a single greeting by id",
       "route": { "method": "GET", "path": "/greetings/{id}" },
-      "response": { "type": "object" }
+      "response": {
+        "title": "Greeting",
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "message": { "type": "string" },
+          "locale": { "type": "string" },
+          "metadata": { "type": ["object", "null"] },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" },
+          "tenant_id": { "type": "string" }
+        }
+      }
     },
     {
       "type": "define",
@@ -80,7 +109,20 @@
           "metadata": { "type": "object" }
         }
       },
-      "response": { "type": "object" }
+      "response": {
+        "title": "Greeting",
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "message": { "type": "string" },
+          "locale": { "type": "string" },
+          "metadata": { "type": ["object", "null"] },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" },
+          "tenant_id": { "type": "string" }
+        }
+      }
     },
     {
       "type": "define",
