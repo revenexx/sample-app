@@ -1,0 +1,18 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: sample-app
+  title: Sample App
+  description: >
+    Reference scaffold for a revenexx App. A minimal hello-world function used
+    to smoke-test the App Registry runtime end-to-end.
+  annotations:
+    github.com/project-slug: revenexx/sample-app
+  tags:
+    - revenexx-app
+    - nodejs
+spec:
+  type: service
+  lifecycle: experimental
+  owner: group:default/developer-experience
+  system: revenue-cloud
