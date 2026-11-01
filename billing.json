@@ -5,6 +5,10 @@
     "email": "support@revenexx.com",
     "url": "https://revenexx.com/support"
   },
+  "legal": {
+    "privacy_policy": "https://www.revenexx.com/privacy",
+    "terms": "https://www.revenexx.com/terms"
+  },
   "categories": ["sample", "developer-tools"],
   "available_countries": ["*"]
 }
