@@ -1,0 +1,23 @@
+# Dependabot (PE-1128), from revenexx/.github templates/dependabot.yml.
+# The reasons behind every setting are in the template; only the
+# ecosystems and folders of this repository are kept here.
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    ignore:
+      # The types follow the Node release the image runs (22), not ahead of it.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+    groups:
+      npm-security:
+        applies-to: security-updates
+        patterns: ["*"]
+      npm:
+        applies-to: version-updates
+        patterns: ["*"]
