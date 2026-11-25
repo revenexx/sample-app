@@ -2,6 +2,10 @@
 
 What each version of this app changed. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); `manifest.json#version` is strict semver, one bump per pull request. Versions before 0.9.3 are recorded only in the git history; 0.9.2 was registered from outside `main`, so this version skips it.
 
+## [0.9.4] — unreleased
+
+The Marketplace listing files the app under the fixed set of eleven areas: `categories` `[sample, developer-tools]` → `[developer]` ([PE-1537](https://linear.app/revenexx/issue/PE-1537)). A patch: listing only, no schema, route, field, capability, permission, event or Cockpit change.
+
 ## [0.9.3] — unreleased
 
 Completes the Marketplace listing the release gate checks ([MAR-19](https://linear.app/revenexx/issue/MAR-19)). No schema change, no route change.
